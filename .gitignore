@@ -1,0 +1,13 @@
+bin/
+obj/
+node_modules/
+dist/
+.vs/
+.vscode/
+.idea/
+.dotnet_home/
+.dotnet_tools/
+.npm-cache/
+*.user
+*.suo
+*.log
