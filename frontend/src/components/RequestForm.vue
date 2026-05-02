@@ -38,7 +38,7 @@ async function submit() {
   try {
     const created = await api.createRequest({
       studentId: props.student.id,
-      mentorId: props.mentor.id,
+      mentorProfileId: props.mentor.id,
       proposedTitle: form.proposedTitle,
       description: form.description,
       optionalMessage: form.optionalMessage || null,

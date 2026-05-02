@@ -31,7 +31,7 @@ public class RequestsController(RequestService requests) : ControllerBase
     {
         try
         {
-            return Ok(await requests.AcceptRequestAsync(id, dto.Comment));
+            return Ok(await requests.AcceptRequestAsync(id, dto.EffectiveResponse));
         }
         catch (KeyNotFoundException ex)
         {
@@ -48,7 +48,7 @@ public class RequestsController(RequestService requests) : ControllerBase
     {
         try
         {
-            return Ok(await requests.RejectRequestAsync(id, dto.Comment));
+            return Ok(await requests.RejectRequestAsync(id, dto.EffectiveResponse));
         }
         catch (KeyNotFoundException ex)
         {

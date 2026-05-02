@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { api } from '../api/client'
 import { getCurrentUser } from '../api/session'
 import MentorCard from '../components/MentorCard.vue'
+import NotificationsPanel from '../components/NotificationsPanel.vue'
 import RequestCard from '../components/RequestCard.vue'
 import RequestForm from '../components/RequestForm.vue'
 
@@ -11,10 +12,12 @@ const router = useRouter()
 const currentUser = ref(getCurrentUser())
 const mentors = ref([])
 const requests = ref([])
+const notifications = ref([])
 const selectedMentor = ref(null)
 const search = ref('')
 const loading = ref(true)
 const actionBusy = ref(null)
+const notificationBusy = ref(null)
 const error = ref('')
 
 onMounted(async () => {
@@ -37,6 +40,7 @@ async function loadData() {
     ])
     mentors.value = mentorData
     requests.value = requestData
+    notifications.value = await api.getNotifications(currentUser.value.id)
   } catch (err) {
     error.value = err.message
   } finally {
@@ -61,6 +65,20 @@ async function cancelRequest(request) {
 async function requestCreated() {
   selectedMentor.value = null
   await loadData()
+}
+
+async function markNotificationRead(notification) {
+  notificationBusy.value = notification.id
+  error.value = ''
+
+  try {
+    await api.markNotificationRead(notification.id)
+    notifications.value = await api.getNotifications(currentUser.value.id)
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    notificationBusy.value = null
+  }
 }
 </script>
 
@@ -102,6 +120,12 @@ async function requestCreated() {
           :student="currentUser"
           @created="requestCreated"
           @cancel="selectedMentor = null"
+        />
+
+        <NotificationsPanel
+          :notifications="notifications"
+          :busy-id="notificationBusy"
+          @mark-read="markNotificationRead"
         />
 
         <section class="panel">

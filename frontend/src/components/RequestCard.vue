@@ -28,7 +28,7 @@ defineEmits(['accept', 'reject', 'cancel', 'update:comment'])
         <h3>{{ request.proposedTitle }}</h3>
         <p class="muted">
           <span v-if="mode === 'mentor'">{{ request.studentName }} · {{ request.studentEmail }}</span>
-          <span v-else>{{ request.mentorName }} · {{ request.mentorEmail }}</span>
+          <span v-else>{{ request.mentorName }} · {{ request.mentorEmail || 'No mentor email' }}</span>
         </p>
       </div>
       <span class="status" :class="request.status.toLowerCase()">{{ request.status }}</span>
@@ -36,7 +36,7 @@ defineEmits(['accept', 'reject', 'cancel', 'update:comment'])
 
     <p>{{ request.description }}</p>
     <p v-if="request.optionalMessage" class="message">{{ request.optionalMessage }}</p>
-    <p v-if="request.mentorComment" class="mentor-comment">{{ request.mentorComment }}</p>
+    <p v-if="request.mentorResponse" class="mentor-comment">{{ request.mentorResponse }}</p>
 
     <div class="request-meta">
       <span>Created {{ new Date(request.createdAt).toLocaleDateString() }}</span>

@@ -1,3 +1,4 @@
+using MentorReservation.Api.Models;
 using MentorReservation.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,7 +6,7 @@ namespace MentorReservation.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MentorsController(MentorService mentors) : ControllerBase
+public class MentorsController(MentorService mentors, MentorImportService imports) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetMentors([FromQuery] string? search)
@@ -32,5 +33,18 @@ public class MentorsController(MentorService mentors) : ControllerBase
         {
             return NotFound(new { ex.Message });
         }
+    }
+
+    [HttpPost("import")]
+    public async Task<IActionResult> ImportMentors()
+    {
+        var result = await imports.ImportAsync();
+
+        if (result.Status == ImportRunStatus.Failed)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 }

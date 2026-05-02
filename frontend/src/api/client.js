@@ -30,6 +30,20 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  registerStudent(payload) {
+    return request('/auth/register-student', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+
+  login(payload) {
+    return request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+
   getUsers(role) {
     const query = role ? `?role=${encodeURIComponent(role)}` : ''
     return request(`/users${query}`)
@@ -48,6 +62,17 @@ export const api = {
     return request(`/mentors/${mentorId}/requests`)
   },
 
+  importMentors() {
+    return request('/mentors/import', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+  },
+
+  getImportRuns() {
+    return request('/import-runs')
+  },
+
   createRequest(payload) {
     return request('/requests', {
       method: 'POST',
@@ -58,14 +83,14 @@ export const api = {
   acceptRequest(id, comment) {
     return request(`/requests/${id}/accept`, {
       method: 'POST',
-      body: JSON.stringify({ comment }),
+      body: JSON.stringify({ response: comment }),
     })
   },
 
   rejectRequest(id, comment) {
     return request(`/requests/${id}/reject`, {
       method: 'POST',
-      body: JSON.stringify({ comment }),
+      body: JSON.stringify({ response: comment }),
     })
   },
 
@@ -74,5 +99,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({}),
     })
+  },
+
+  getNotifications(userId) {
+    return request(`/notifications/user/${userId}`)
+  },
+
+  markNotificationRead(id) {
+    return request(`/notifications/${id}/read`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+  },
+
+  getEmailOutbox() {
+    return request('/email-outbox')
   },
 }

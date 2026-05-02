@@ -17,8 +17,16 @@ public class UserService(AppDbContext db)
         }
 
         return await query
-            .OrderBy(user => user.FullName)
-            .Select(user => new UserDto(user.Id, user.FullName, user.Email, user.Role))
+            .OrderBy(user => user.LastName)
+            .ThenBy(user => user.FirstName)
+            .Select(user => new UserDto(
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.FullName,
+                user.Email,
+                user.Role,
+                user.IsActive))
             .ToListAsync();
     }
 }

@@ -9,22 +9,27 @@ public class MentorService(AppDbContext db)
 {
     public async Task<List<MentorDto>> GetMentorsAsync(string? search)
     {
-        var normalizedSearch = search?.Trim().ToLower();
+        var normalizedSearch = search?.Trim().ToLowerInvariant();
 
         var mentors = await db.MentorProfiles
             .AsNoTracking()
-            .Include(profile => profile.User)
             .Include(profile => profile.Requests)
-            .OrderBy(profile => profile.User.FullName)
+            .Include(profile => profile.MentorResearchAreas)
+            .ThenInclude(item => item.ResearchArea)
+            .OrderBy(profile => profile.LastName)
+            .ThenBy(profile => profile.FirstName)
             .ToListAsync();
 
         if (!string.IsNullOrWhiteSpace(normalizedSearch))
         {
             mentors = mentors
                 .Where(profile =>
-                    profile.User.FullName.ToLower().Contains(normalizedSearch) ||
-                    profile.Laboratory.ToLower().Contains(normalizedSearch) ||
-                    profile.ResearchAreas.Any(area => area.ToLower().Contains(normalizedSearch)))
+                    profile.FullName.ToLowerInvariant().Contains(normalizedSearch) ||
+                    (profile.Title ?? string.Empty).ToLowerInvariant().Contains(normalizedSearch) ||
+                    (profile.Email ?? string.Empty).ToLowerInvariant().Contains(normalizedSearch) ||
+                    (profile.Laboratory ?? string.Empty).ToLowerInvariant().Contains(normalizedSearch) ||
+                    profile.MentorResearchAreas.Any(item =>
+                        item.ResearchArea.Name.ToLowerInvariant().Contains(normalizedSearch)))
                 .ToList();
         }
 
@@ -35,16 +40,17 @@ public class MentorService(AppDbContext db)
     {
         var mentor = await db.MentorProfiles
             .AsNoTracking()
-            .Include(profile => profile.User)
             .Include(profile => profile.Requests)
+            .Include(profile => profile.MentorResearchAreas)
+            .ThenInclude(item => item.ResearchArea)
             .SingleOrDefaultAsync(profile => profile.Id == id);
 
         return mentor is null ? null : ToMentorDto(mentor);
     }
 
-    public async Task<List<MentorshipRequestDto>> GetMentorRequestsAsync(int mentorId)
+    public async Task<List<MentorshipRequestDto>> GetMentorRequestsAsync(int mentorProfileId)
     {
-        var exists = await db.MentorProfiles.AnyAsync(profile => profile.Id == mentorId);
+        var exists = await db.MentorProfiles.AnyAsync(profile => profile.Id == mentorProfileId);
 
         if (!exists)
         {
@@ -54,44 +60,60 @@ public class MentorService(AppDbContext db)
         return await db.MentorshipRequests
             .AsNoTracking()
             .Include(request => request.Student)
-            .Include(request => request.Mentor)
-            .ThenInclude(mentor => mentor.User)
-            .Where(request => request.MentorId == mentorId)
+            .ThenInclude(student => student.StudentProfile)
+            .Include(request => request.MentorProfile)
+            .Where(request => request.MentorProfileId == mentorProfileId)
             .OrderByDescending(request => request.CreatedAt)
             .Select(request => ToRequestDto(request))
             .ToListAsync();
     }
 
-    private static MentorDto ToMentorDto(MentorProfile profile)
+    public static MentorDto ToMentorDto(MentorProfile profile)
     {
         var accepted = profile.Requests.Count(request => request.Status == RequestStatus.Accepted);
+        var areas = profile.MentorResearchAreas
+            .Select(item => item.ResearchArea.Name)
+            .OrderBy(name => name)
+            .ToList();
 
         return new MentorDto(
             profile.Id,
             profile.UserId,
-            profile.User.FullName,
-            profile.User.Email,
+            profile.FirstName,
+            profile.LastName,
+            profile.FullName,
+            profile.Title,
+            profile.Email,
+            profile.ProfileUrl,
             profile.Laboratory,
-            profile.ResearchAreas,
+            profile.Office,
+            profile.Phone,
+            areas,
             profile.MaxStudents,
             accepted,
-            Math.Max(profile.MaxStudents - accepted, 0));
+            Math.Max(profile.MaxStudents - accepted, 0),
+            profile.IsAvailable,
+            profile.Source,
+            profile.ImportedAt);
     }
 
-    private static MentorshipRequestDto ToRequestDto(MentorshipRequest request) =>
+    public static MentorshipRequestDto ToRequestDto(MentorshipRequest request) =>
         new(
             request.Id,
             request.StudentId,
             request.Student.FullName,
             request.Student.Email,
-            request.MentorId,
-            request.Mentor.User.FullName,
-            request.Mentor.User.Email,
+            request.Student.StudentProfile?.EnrollmentNumber,
+            request.Student.StudentProfile?.StudyProgram,
+            request.MentorProfileId,
+            request.MentorProfile.FullName,
+            request.MentorProfile.Email,
             request.ProposedTitle,
             request.Description,
             request.OptionalMessage,
             request.Status,
-            request.MentorComment,
+            request.MentorResponse,
             request.CreatedAt,
-            request.UpdatedAt);
+            request.UpdatedAt,
+            request.DecidedAt);
 }

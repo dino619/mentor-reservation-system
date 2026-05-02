@@ -9,8 +9,8 @@ public class MentorshipRequest
     public int StudentId { get; set; }
     public AppUser Student { get; set; } = null!;
 
-    public int MentorId { get; set; }
-    public MentorProfile Mentor { get; set; } = null!;
+    public int MentorProfileId { get; set; }
+    public MentorProfile MentorProfile { get; set; } = null!;
 
     [Required]
     [MaxLength(180)]
@@ -26,8 +26,9 @@ public class MentorshipRequest
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     [MaxLength(1500)]
-    public string? MentorComment { get; set; }
+    public string? MentorResponse { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? DecidedAt { get; set; }
 }

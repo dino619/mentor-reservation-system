@@ -7,8 +7,10 @@ public class CreateMentorshipRequestDto
     [Required]
     public int StudentId { get; set; }
 
-    [Required]
-    public int MentorId { get; set; }
+    public int? MentorProfileId { get; set; }
+
+    // Kept for compatibility with the first prototype frontend/API examples.
+    public int? MentorId { get; set; }
 
     [Required]
     [StringLength(180, MinimumLength = 5)]
